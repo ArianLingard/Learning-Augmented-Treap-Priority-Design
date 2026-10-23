@@ -12,3 +12,4 @@ __pycache__/
 
 # 可能的大文件
 Documents and Files/*.pdf
+Documents and Files/*.docx
