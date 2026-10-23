@@ -1,0 +1,14 @@
+# C++ 编译产物（容易冲突且占空间）
+*.exe
+*.o
+*.obj
+
+# Python 缓存
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+~$*
+
+# 可能的大文件
+Documents and Files/*.pdf

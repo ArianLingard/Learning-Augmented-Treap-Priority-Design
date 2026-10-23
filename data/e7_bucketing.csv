@@ -1,0 +1,5 @@
+setting,mean_height,std_height,mean_comparisons,std_comparisons
+no_bucket_no_perturb,5000,0,1.1017e+07,125670
+bucket_no_perturb,5000,0,1.1017e+07,125670
+bucket_perturb,83.7333,5.99387,481690,30278.2
+bucket_adaptive,87.6,7.37002,489114,37783.2
