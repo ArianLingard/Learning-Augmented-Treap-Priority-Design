@@ -68,8 +68,15 @@ priority = -⌊ log2(log2(1/w)) ⌋ + U(0,1)
 ```
 .
 ├── README.md
+├── Makefile                   # 构建脚本（make 编译）
 ├── src/
-│   └── LA_BST_CSV.cpp        # C++ 实验主程序（Treap、预测器、映射函数、E1–E7）
+│   ├── treap.h / treap.cpp           # 模块 1：Treap（BST + 大根堆）
+│   ├── distribution.h / .cpp         # 模块 2：访问分布（键序打乱、采样）
+│   ├── oracle.h / .cpp               # 模块 3：预测器 Oracle（完美/KL 噪声）
+│   ├── priority.h / .cpp             # 模块 4：priority 映射函数（Chen/f1–f4、分桶、扰动）
+│   ├── experiment.h / .cpp           # 模块 5：实验设计（E1–E7）
+│   ├── runner.h                      # 统一模板：打开文件 / 记录计时 / 写文件
+│   └── main.cpp                      # 入口：按命令行参数分派实验
 ├── notebooks/
 │   ├── plot_all.py           # 读取 CSV，生成 fig1–fig7，并打印表 1–表 6
 │   └── analysis.ipynb        # 实验分析 notebook
@@ -89,8 +96,11 @@ priority = -⌊ log2(log2(1/w)) ⌋ + U(0,1)
 在项目根目录执行：
 
 ```powershell
-# 编译（GCC 示例；MSVC 可用 cl /std:c++17 /O2 /EHsc）
-g++ -std=c++17 -O2 -o la_treap.exe src/LA_BST_CSV.cpp
+# 方式一：用 Makefile 编译（推荐，自动编译所有 src/*.cpp）
+make
+
+# 方式二：手动编译全部源文件（MSVC 可用 cl /std:c++17 /O2 /EHsc src\*.cpp）
+g++ -std=c++17 -O2 -static-libstdc++ -static-libgcc -o la_treap.exe src/*.cpp
 
 # 运行全部实验（E1–E7），结果写入 data/*.csv
 .\la_treap.exe
@@ -101,6 +111,8 @@ g++ -std=c++17 -O2 -o la_treap.exe src/LA_BST_CSV.cpp
 # 生成图表与统计表格
 python notebooks/plot_all.py
 ```
+
+> 说明：`-static-libstdc++ -static-libgcc` 静态链接 C++ 运行时，可避免 PATH 中其他 MinGW 自带的 `libstdc++-6.dll`（版本不一致）在运行时被误加载而崩溃。
 
 ## 实验一览
 
