@@ -103,10 +103,10 @@ priority = -⌊ log2(log2(1/w)) ⌋ + U(0,1)
 
 ```powershell
 # 方式一：用 Makefile 编译（推荐，自动编译所有 src/*.cpp）
-make
+mingw32-make      # 若系统命令是 make 则改用 make
 
 # 方式二：手动编译全部源文件（MSVC 可用 cl /std:c++17 /O2 /EHsc src\*.cpp）
-g++ -std=c++17 -O2 -static-libstdc++ -static-libgcc -o la_treap.exe src/*.cpp
+g++ -std=c++17 -O2 -static -o la_treap.exe src/*.cpp
 
 # 运行全部实验（E1–E7），结果写入 data/*.csv
 .\la_treap.exe
@@ -118,7 +118,7 @@ g++ -std=c++17 -O2 -static-libstdc++ -static-libgcc -o la_treap.exe src/*.cpp
 python notebooks/plot_all.py
 ```
 
-> 说明：`-static-libstdc++ -static-libgcc` 静态链接 C++ 运行时，可避免 PATH 中其他 MinGW 自带的 `libstdc++-6.dll`（版本不一致）在运行时被误加载而崩溃。
+> 说明：`-static` 全静态链接 C++ / pthread 运行时，exe 不再依赖 `libstdc++-6.dll` 与 `libwinpthread-1.dll`，可避免 PATH 中其他 MinGW 自带的同名 DLL（版本不一致）在运行时被误加载而崩溃（段错误）。如果 `.\la_treap.exe` 一运行就闪退 / 段错误，多半是编译时漏了 `-static`。
 
 ## 实验一览
 
