@@ -7,8 +7,9 @@
 #include <string>
 
 // ====================================================
-// 统一模板：打开文件 / 记录计时 / 写文件
-//   runExperiment(path, fn)：创建 ofstream -> 计时执行 fn(out) -> 关闭并打印耗时。
+// 统一模板：打开文件 / 记录计时 / 写文件 / 记录运行时间
+//   runExperiment(id, path, fn, log)：创建 ofstream -> 计时执行 fn(out) -> 关闭，
+//   在控制台打印耗时，并把一行 "id,path,seconds" 写入 log。
 //   所有实验（E1-E7）共用这套打开/计时/写文件逻辑。
 // ====================================================
 
@@ -19,7 +20,7 @@ inline double elapsedSeconds(std::chrono::high_resolution_clock::time_point t0) 
 }
 
 template <typename Fn>
-void runExperiment(const std::string& path, Fn&& fn) {
+void runExperiment(const std::string& id, const std::string& path, Fn&& fn, std::ofstream& log) {
     auto t0 = std::chrono::high_resolution_clock::now();
     std::ofstream out(path.c_str());
     if (!out.is_open()) {
@@ -28,6 +29,8 @@ void runExperiment(const std::string& path, Fn&& fn) {
     }
     fn(out);
     out.close();
+    double secs = elapsedSeconds(t0);
     std::cout << "  wrote " << path << "  ["
-              << std::fixed << std::setprecision(2) << elapsedSeconds(t0) << " s]\n";
+              << std::fixed << std::setprecision(2) << secs << " s]\n";
+    log << id << "," << path << "," << std::fixed << std::setprecision(2) << secs << "\n";
 }

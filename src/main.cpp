@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <string>
@@ -21,14 +22,21 @@ int main(int argc, char** argv) {
     cout << "Learning-Augmented Treap experiments (E1-E7)\n";
     auto tAll = chrono::high_resolution_clock::now();
 
-    if (shouldRun("e1")) runExperiment("data/e1_basic.csv", runE1);
-    if (shouldRun("e2")) runExperiment("data/e2_drift.csv", runE2);
-    if (shouldRun("e3")) runExperiment("data/e3_singularity.csv", runE3);
-    if (shouldRun("e4")) runExperiment("data/e4_static_optimal.csv", runE4);
-    if (shouldRun("e5")) runExperiment("data/e5_kl_noise.csv", runE5);
-    if (shouldRun("e6")) runExperiment("data/e6_adaptive_perturb.csv", runE6);
-    if (shouldRun("e7")) runExperiment("data/e7_bucketing.csv", runE7);
+    // 每次运行生成 data/run_times.csv，记录每个实验的耗时（experiment,path,seconds）
+    ofstream log("data/run_times.csv");
+    log << "experiment,path,seconds\n";
 
-    cout << "done. total " << fixed << setprecision(2) << elapsedSeconds(tAll) << " s\n";
+    if (shouldRun("e1")) runExperiment("e1", "data/e1_basic.csv", runE1, log);
+    if (shouldRun("e2")) runExperiment("e2", "data/e2_drift.csv", runE2, log);
+    if (shouldRun("e3")) runExperiment("e3", "data/e3_singularity.csv", runE3, log);
+    if (shouldRun("e4")) runExperiment("e4", "data/e4_static_optimal.csv", runE4, log);
+    if (shouldRun("e5")) runExperiment("e5", "data/e5_kl_noise.csv", runE5, log);
+    if (shouldRun("e6")) runExperiment("e6", "data/e6_adaptive_perturb.csv", runE6, log);
+    if (shouldRun("e7")) runExperiment("e7", "data/e7_bucketing.csv", runE7, log);
+
+    double total = elapsedSeconds(tAll);
+    cout << "done. total " << fixed << setprecision(2) << total << " s\n";
+    log << "total,," << fixed << setprecision(2) << total << "\n";
+    log.close();
     return 0;
 }
