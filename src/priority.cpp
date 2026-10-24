@@ -35,15 +35,22 @@ KeyInfo computeKeyInfo(const vector<double>& w, mt19937_64& rng) {
     return { n, w, rankDesc, F };
 }
 
+// D(x) = Softplus(γx) - ln2 = ln(1+e^{γx}) - ln2，双对数内部的平滑阻尼项。
+//   x->0 时 D->0（退化为标准双对数，保留长尾区分度）；
+//   x->1 时 D->ln((1+e^γ)/2)>0（消除右端奇点，f 右端有界）。
+static double softplusDamping(double x) {
+    return log1p(exp(GAMMA * x)) - log(2.0);
+}
+
 double basePriority(const string& method, const KeyInfo& ki, int x) {
     double w = ki.w[x];
     if (method == "Chen") {
         return -floor(log2(log2(1.0 / w)));          // w==1 时 log2(0)=-inf -> +inf
     }
-    if (method == "f1") return -log2(log2(1.0 / w) + EPS);
+    if (method == "f1") return -log2(log2(1.0 / w) + softplusDamping(w));
     if (method == "f2") {
         double K = log2(log2((double)ki.n));
-        return K - (double)ki.rankDesc[x] * K / (double)ki.n;
+        return K - floor((double)ki.rankDesc[x] * K / (double)ki.n);
     }
     if (method == "f3") {
         double p = (double)(ki.n - ki.rankDesc[x] + 1) / (double)ki.n;
