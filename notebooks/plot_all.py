@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-plot_all.py —— 读取 C++ 程序 (LA_BST_CSV.cpp) 输出的 7 个 CSV，为每个实验生成一张 PDF
+plot_all.py —— 读取 C++ 程序 (src/*.cpp，la_treap.exe) 输出的 7 个 CSV，为每个实验生成一张 PDF
 （fig1~fig7），并在控制台打印表 1-表 6。
 
 用法：在项目根目录执行  python notebooks/plot_all.py
@@ -216,8 +216,8 @@ def fig4(e4):
     ax.axhline(1.0, color=AXIS, lw=0.8, ls=":")
     ax.set_xticks(x); ax.set_xticklabels(dists)
     ax.set_xlabel("分布")
-    ax.set_ylabel("静态最优比 ρ = 比较次数 / 香农熵下界")
-    ax.set_title("图 4  E4  静态最优比（n = 5000，ρ 越接近常数越优）")
+    ax.set_ylabel("静态最优比 ρ = 比较次数 / 最优静态 BST 代价")
+    ax.set_title("图 4  E4  静态最优比（n = 5000，ρ ≥ 1，越接近 1 越优）")
     ax.legend(ncol=3)
     fig.tight_layout()
     save(fig, "fig4_e4_static_optimal.pdf")

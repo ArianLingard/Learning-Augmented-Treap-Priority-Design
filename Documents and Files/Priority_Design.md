@@ -435,4 +435,6 @@ $m \cdot D_{KL}\left( p \parallel \widetilde{p} \right)$的代价换取尺度不
 CDF
 校准良好时较小，在极端偏斜且秩均匀假设失效时增大。实验将报告静态最优比以量化该代价：
 
-$$\rho = \frac{\text{实测总代价}}{\sum_{x}^{}f_{x}\log_{2}\left( \frac{m}{f_{x}} \right)}$$
+$$\rho = \frac{\text{实测总代价}}{OPT}$$
+
+其中 $OPT = \min\sum_{x}^{}f_{x} \cdot depth(x)$ 为最优静态 BST 代价（用 Knuth 动态规划按实际访问频率求得，$depth$ 为节点访问次数、根 = 1），因此 $\rho \geq 1$ 恒成立，越接近 1 越接近静态最优。香农熵 $\sum_{x}^{}f_{x}\log_{2}\left( m/f_{x} \right)$ 是叶子二叉码（按边数、每比较 1 bit）的下界，与内节点树三路比较的口径不同，用它作分母会得到 $\rho < 1$ 的假象。

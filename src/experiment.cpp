@@ -10,6 +10,7 @@
 #include <cmath>
 #include <cstdint>
 #include <iomanip>
+#include <limits>
 #include <numeric>
 #include <random>
 #include <string>
@@ -40,12 +41,6 @@ Stat stat(const vector<double>& v) {
     return { m, sqrt(var) };
 }
 
-double entropyBits(const vector<double>& p) {
-    double h = 0.0;
-    for (double x : p) if (x > 0) h -= x * log2(x);
-    return h;
-}
-
 struct EvalResult { long long comparisons; double avgDepth; int maxDepth; };
 EvalResult evaluate(int n, const vector<int>& keysOrder, const vector<double>& pri, const vector<int>& seq) {
     Treap t;
@@ -57,6 +52,43 @@ EvalResult evaluate(int n, const vector<int>& keysOrder, const vector<double>& p
     for (auto& kv : depths) avg += kv.second;
     avg /= (double)n;
     return { comps, avg, t.height() };
+}
+
+// 最优静态 BST 代价：Knuth O(n²) 动态规划。
+// 输入每个键的访问频率 f[k]（k=0..n-1，已按键值升序），返回
+//   OPT = min_{BST} Σ_k f[k] · depth(k)，
+// 其中 depth(k) 为节点访问次数（根=1），与 Treap::search 统计的比较次数口径一致。
+// 因此 ρ = 实测比较次数 / OPT 恒 >= 1，是真正意义上的静态最优差距。
+double optimalBSTCost(const vector<long long>& f) {
+    int n = (int)f.size();
+    if (n == 0) return 0.0;
+    vector<double> w(n + 1);                       // 1-indexed 权重
+    for (int k = 0; k < n; k++) w[k + 1] = (double)f[k];
+    vector<double> sum(n + 1, 0.0);                // 前缀和 W(i,j)=sum[j]-sum[i-1]
+    for (int i = 1; i <= n; i++) sum[i] = sum[i - 1] + w[i];
+
+    vector<vector<double>> e(n + 2, vector<double>(n + 1, 0.0));  // 空区间 e[i][i-1]=0
+    vector<vector<int>> root(n + 2, vector<int>(n + 1, 0));
+    for (int i = 1; i <= n; i++) { e[i][i] = w[i]; root[i][i] = i; }
+
+    for (int len = 2; len <= n; len++) {
+        for (int i = 1; i + len - 1 <= n; i++) {
+            int j = i + len - 1;
+            double W = sum[j] - sum[i - 1];
+            // Knuth 单调性：root[i][j-1] <= root[i][j] <= root[i+1][j]
+            int lo = root[i][j - 1];
+            int hi = root[i + 1][j];
+            double best = numeric_limits<double>::infinity();
+            int bestRoot = lo;
+            for (int r = lo; r <= hi; r++) {
+                double t = e[i][r - 1] + e[r + 1][j];
+                if (t < best) { best = t; bestRoot = r; }
+            }
+            e[i][j] = best + W;
+            root[i][j] = bestRoot;
+        }
+    }
+    return e[1][n];
 }
 
 } // namespace
@@ -198,7 +230,6 @@ void runE4(ofstream& out) {
     for (auto& d : dists) {
         for (int n : ns) {
             vector<double> pn = genDistribution(d.first, d.second, n);
-            double denom = M * entropyBits(pn);   // 香农熵下界：sum f_x log2(m/f_x)
             vector<vector<double>> rhos(methods.size());
             for (int seed = 0; seed < SEEDS; seed++) {
                 mt19937_64 rng(seed + 200);
@@ -207,10 +238,14 @@ void runE4(ofstream& out) {
                 vector<int> seq = genAccessSequence(w, M, rng);
                 vector<int> keysOrder(n); iota(keysOrder.begin(), keysOrder.end(), 0);
                 shuffle(keysOrder.begin(), keysOrder.end(), rng);
+                // 真实访问频率 -> 最优静态 BST 代价（所有方法共用同一 seq，故 OPT 每 seed 只算一次）
+                vector<long long> f(n, 0);
+                for (int q : seq) f[q]++;
+                double opt = optimalBSTCost(f);
                 for (size_t mi = 0; mi < methods.size(); mi++) {
                     vector<double> pri = buildPriorities(methods[mi], ki, FIXED, rng);
                     auto res = evaluate(n, keysOrder, pri, seq);
-                    rhos[mi].push_back((double)res.comparisons / denom);
+                    rhos[mi].push_back((double)res.comparisons / opt);
                 }
             }
             for (size_t mi = 0; mi < methods.size(); mi++) {
