@@ -1,3 +1,4 @@
 experiment,path,seconds
-e3,data/e3_singularity.csv,0.06
-total,,0.06
+e2,data/e2_drift.csv,4.58
+e7,data/e7_bucketing.csv,3.61
+total,,8.19
