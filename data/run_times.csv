@@ -1,9 +1,3 @@
 experiment,path,seconds
-e1,data/e1_basic.csv,5.07
-e2,data/e2_drift.csv,4.45
-e3,data/e3_singularity.csv,0.06
-e4,data/e4_static_optimal.csv,50.43
-e5,data/e5_kl_noise.csv,3.46
-e6,data/e6_adaptive_perturb.csv,12.17
-e7,data/e7_bucketing.csv,3.77
-total,,79.42
+e1,data/e1_basic.csv,6.10
+total,,6.10

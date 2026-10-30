@@ -84,12 +84,12 @@ priority = -⌊ log2(log2(1/w)) ⌋ + U(0,1)
 │   ├── runner.h                      # 统一模板：打开文件 / 记录计时 / 写文件
 │   └── main.cpp                      # 入口：按命令行参数分派实验
 ├── notebooks/
-│   ├── plot_all.py           # 读取 CSV，生成 fig1–fig7，并打印表 1–表 6
+│   ├── plot_all.py           # 读取 CSV，生成 fig1a/1b/1c、fig2–fig7，并打印表 1–表 6
 │   └── analysis.ipynb        # 实验分析 notebook
 ├── Documents and Files/
 │   └── Priority_Design.md    # 完整设计文档（性质、修正策略、函数构造与缺陷分析）
 ├── data/                     # 实验输出 CSV（e1–e7）
-└── figures/                  # 图表输出 PDF（fig1–fig7）
+└── figures/                  # 图表输出 PDF（fig1a/1b/1c、fig2–fig7）
 ```
 
 ## 环境依赖

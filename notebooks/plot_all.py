@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-plot_all.py —— 读取 C++ 程序 (src/*.cpp，la_treap.exe) 输出的 7 个 CSV，为每个实验生成一张 PDF
-（fig1~fig7），并在控制台打印表 1-表 6。
+plot_all.py —— 读取 C++ 程序 (src/*.cpp，la_treap.exe) 输出的 7 个 CSV，为每个实验生成 PDF
+（E1 三张 fig1a/1b/1c，E2~E7 各一张 fig2~fig7），并在控制台打印表 1-表 6。
 
 用法：在项目根目录执行  python notebooks/plot_all.py
-输出：figures/fig1_e1_basic.pdf ... figures/fig7_e7_bucketing.pdf
+输出：figures/fig1a_e1_comparisons.pdf ... figures/fig7_e7_bucketing.pdf
 """
 import os
 import pandas as pd
@@ -37,6 +37,13 @@ CAT = {
     "f4":     "#9007C6",   # purple
 }
 METHOD_ORDER = ["Random", "Chen", "f1", "f2", "f3", "f4"]
+
+DIST_ORDER = ["Zipf α=1.0", "Zipf α=1.25", "Zipf α=2.0", "Adversarial", "Uniform"]
+
+
+def dist_label(r):
+    """E1 的分布标签：Zipf 带 α，其余仅分布名（param 为空时避免 NaN 被 pivot 丢弃）。"""
+    return f"{r['distribution']}" + (f" α={r['param']}" if r["distribution"] == "Zipf" else "")
 
 plt.rcParams.update({
     "figure.facecolor": SURFACE,
@@ -80,37 +87,59 @@ def save(fig, fname):
 
 
 # ---------------------------------------------------------------
-# 图 1：E1 常规分布基础性能（Zipf α=1 分组柱状图）
+# 图 1：E1 常规分布基础性能（5 分布 × 3 指标 完整可视化）
 # ---------------------------------------------------------------
 def fig1(e1):
     if e1 is None:
         return
-    df = e1[(e1["distribution"] == "Zipf") & (e1["param"] == 1.0)]
+    df = e1.copy()
+    df["dist"] = df.apply(dist_label, axis=1)
+    dists = [d for d in DIST_ORDER if d in set(df["dist"])]
     methods = [m for m in METHOD_ORDER if m in set(df["method"])]
     ns = sorted(df["n"].unique())
-    n_colors = {ns[0]: "#86b6ef", ns[1]: "#1c5cab"}
+    n_colors = {ns[0]: "#86b6ef", ns[1]: "#1c5cab"}   # 顺序色阶：浅蓝 → 深蓝（n=1000 → 5000）
 
-    fig, ax = plt.subplots(figsize=(8, 5))
+    metrics = [
+        ("mean_comparisons", "std_comparisons", "总比较次数（m = 10⁵）",
+         "fig1a_e1_comparisons.pdf", "图 1a  E1  总比较次数（5 分布）"),
+        ("mean_avg_depth", "std_avg_depth", "平均深度",
+         "fig1b_e1_avg_depth.pdf", "图 1b  E1  平均深度（5 分布）"),
+        ("mean_max_depth", "std_max_depth", "最大深度（树高）",
+         "fig1c_e1_max_depth.pdf", "图 1c  E1  最大深度（树高，5 分布）"),
+    ]
+
     x = np.arange(len(methods))
     width = 0.38
-    for i, n in enumerate(ns):
-        sub = df[df["n"] == n].set_index("method")
-        vals = [sub.loc[m, "mean_comparisons"] for m in methods]
-        errs = [sub.loc[m, "std_comparisons"] for m in methods]
-        bx = x + (i - 0.5) * width
-        ax.bar(bx, vals, width, color=n_colors[n], label=f"n = {n}", zorder=3)
-        ax.errorbar(bx, vals, yerr=errs, fmt="none",
-                    ecolor=INK2, elinewidth=0.8, capsize=3, zorder=4)
 
-    ax.set_xticks(x)
-    ax.set_xticklabels(methods)
-    ax.set_xlabel("方法")
-    ax.set_ylabel("总比较次数（m = 10⁵）")
-    ax.set_title("图 1  E1  Zipf α = 1 下各方法总比较次数")
-    ax.legend(title="规模")
-    ax.margins(x=0.05)
-    fig.tight_layout()
-    save(fig, "fig1_e1_basic.pdf")
+    for mean_col, std_col, ylab, fname, title in metrics:
+        fig, axes = plt.subplots(2, 3, figsize=(16, 7.6), sharex=True, sharey=True)
+        axes = axes.ravel()
+        for k, d in enumerate(dists):
+            ax = axes[k]
+            sub_dist = df[df["dist"] == d]
+            for i, n in enumerate(ns):
+                sub = sub_dist[sub_dist["n"] == n].set_index("method")
+                vals = [sub.loc[m, mean_col] for m in methods]
+                errs = [sub.loc[m, std_col] for m in methods]
+                bx = x + (i - 0.5) * width
+                ax.bar(bx, vals, width, color=n_colors[n],
+                       label=f"n = {n}" if k == 0 else None, zorder=3)
+                ax.errorbar(bx, vals, yerr=errs, fmt="none",
+                            ecolor=INK2, elinewidth=0.8, capsize=3, zorder=4)
+            ax.set_title(d, fontsize=11)
+            ax.margins(x=0.05)
+            ax.set_xticks(x)
+            ax.set_xticklabels(methods, rotation=45, ha="right", fontsize=9)
+
+        # 第 6 个空面板留白，图例放在右下角空处
+        if len(dists) < len(axes):
+            axes[len(dists)].axis("off")
+        axes[0].set_ylabel(ylab)
+        handles, labels = axes[0].get_legend_handles_labels()
+        fig.legend(handles, labels, title="规模", loc="lower right", ncol=1, frameon=False)
+        fig.suptitle(title, fontsize=14)
+        fig.tight_layout()
+        save(fig, fname)
 
 
 # ---------------------------------------------------------------
@@ -346,11 +375,17 @@ def fig7(e7):
 # ---------------------------------------------------------------
 def tables(e1, e2, e3, e4, e5, e6, e7):
     print("\n" + "=" * 70)
-    print("表 1  E1 常规分布基础性能（总比较次数均值）")
+    print("表 1  E1 常规分布基础性能（均值：总比较次数 / 平均深度 / 最大深度）")
     if e1 is not None:
-        t = e1.pivot_table(index=["distribution", "param", "n"], columns="method",
-                           values="mean_comparisons")
-        print(t.round(0).to_string())
+        e1 = e1.copy()
+        e1["dist"] = pd.Categorical(e1.apply(dist_label, axis=1),
+                                    categories=DIST_ORDER, ordered=True)
+        for val, name, nd in [("mean_comparisons", "总比较次数", 0),
+                              ("mean_avg_depth", "平均深度", 2),
+                              ("mean_max_depth", "最大深度", 2)]:
+            t = e1.pivot_table(index=["dist", "n"], columns="method", values=val)
+            print(f"\n  —— {name} ——")
+            print(t.round(nd).to_string())
     print("\n表 2  E2 量纲漂移（Kendall τ）")
     if e2 is not None:
         t = e2.pivot_table(index=["transform", "param"], columns="method",

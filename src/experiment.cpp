@@ -99,7 +99,7 @@ void runE1(ofstream& out) {
         {"Zipf", 1.0}, {"Zipf", 1.25}, {"Zipf", 2.0}, {"Adversarial", 0.0}, {"Uniform", 0.0}
     };
     vector<int> ns = { 1000, 5000 };
-    vector<string> methods = { "Random", "Chen", "f1", "f3", "f4" };
+    vector<string> methods = { "Random", "Chen", "f1", "f2", "f3", "f4" };
     out << "distribution,param,n,method,mean_comparisons,std_comparisons,mean_avg_depth,std_avg_depth,mean_max_depth,std_max_depth\n";
     out << setprecision(6);
     for (auto& d : dists) {
